@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 using namespace std;
 
@@ -21,9 +22,77 @@ public:
 	}
 };
 
+class BorrowManager {
+private:
+	unordered_map<string, int> stock;
+
+public:
+	void initializeStock(string book, int quantity = 3) {
+		stock[book] = quantity;
+	}
+
+	void borrowBook(string title) {
+		for (auto& pair : stock) {
+			if (pair.first == title) {
+				if (pair.second > 0) {
+					pair.second--;
+					cout << "Borrowed: " << title << endl;
+				}
+				else {
+					cout << "No stock available for: " << title << endl;
+				}
+				return;
+			}
+		}
+		cout << "Book not found: " << title << endl;
+	}
+
+	void returnBook(string title) {
+		for (auto& pair : stock) {
+			if (pair.first == title) {
+				pair.second++;
+				cout << "Returned: " << title << endl;
+				return;
+			}
+		}
+		cout << "Book not found: " << title << endl;
+	}
+
+	void displayStock() {
+
+	}
+};
+
 class BookManager {
 private:
 	vector<Book> books;
+
+
+	Book* findBookByTitle(string title) {
+		auto it = find_if(books.begin(), books.end(), [title](Book& book) {
+			return book.getTitle() == title;
+			});
+
+		if (it != books.end()) {
+			return &(*it);
+		}
+		else {
+			return nullptr;
+		}
+	}
+
+	Book* findBookByAuthor(string author) {
+		auto it = find_if(books.begin(), books.end(), [author](Book& book) {
+			return book.getTitle() == author;
+			});
+
+		if (it != books.end()) {
+			return &(*it);
+		}
+		else {
+			return nullptr;
+		}
+	}
 
 public:
 	void addBook(string title, string author) {
@@ -36,43 +105,43 @@ public:
 		}
 	}
 
-	string searchByTitle(string title) {
-		auto it = find_if(books.begin(), books.end(), [title](Book& book) {
-			return book.getTitle() == title;
-			});
-
-		if (it != books.end()) {
-			return "Found: " + it->getTitle() + " by " + it->getAuthor();
-		}
-		else {
-			return "Book not found.";
-		}
+	Book* getBookByTitle(string title) {
+		return findBookByTitle(title);
 	}
 
-	string searchByAuthor(string author) {
-		auto it = find_if(books.begin(), books.end(), [author](Book& book) {
-			return book.getAuthor() == author;
-			});
-
-		if (it != books.end()) {
-			return "Found: " + it->getTitle() + " by " + it->getAuthor();
-		}
-		else {
-			return "Book not found.";
-		}
+	Book* getBookByAuthor(string author) {
+		return findBookByAuthor(author);
 	}
 };
 
 int main() {
-	BookManager manager;
+	BookManager bookManager;
+	BorrowManager borrowManager;
 
-	manager.addBook("1984", "George Orwell");
-	manager.addBook("To Kill a Mockingbird", "Harper Lee");
-	manager.addBook("The Great Gatsby", "F. Scott Fitzgerald");
+	// 책 추가
+	bookManager.addBook("1984", "George Orwell");
+	bookManager.addBook("To Kill a Mockingbird", "Harper Lee");
+	bookManager.addBook("The Great Gatsby", "F. Scott Fitzgerald");
 
-	manager.displayAllBooks();
+	bookManager.displayAllBooks();
 
-	cout << manager.searchByTitle("1984") << endl;
-	cout << manager.searchByTitle("Brave New World") << endl;
+	// 재고 초기화
+	borrowManager.initializeStock("1984", 5);
+	borrowManager.initializeStock("To Kill a Mockingbird", 2);
+
+	borrowManager.displayStock();
+
+	// 책 대여
+	borrowManager.borrowBook("1984");
+	borrowManager.borrowBook("The Great Gatsby");
+
+	borrowManager.displayStock();
+
+	// 책 반납
+	borrowManager.returnBook("1984");
+	borrowManager.returnBook("The Great Gatsby");
+
+	borrowManager.displayStock();
+
 	return 0;
 }
